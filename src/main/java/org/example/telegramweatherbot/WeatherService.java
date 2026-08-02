@@ -41,30 +41,29 @@ public class WeatherService {
 
             String rainInfo = "";
             if (precipMm > 0) {
-                rainInfo = String.format("🌧️ Осадки: %.1f мм%n", precipMm);
+                rainInfo = String.format("🌧️ Осадки: %.1f мм\n", precipMm);
             }
 
-            return String.format("""
-                    🌤 Погода в городе %s
-                    📍 %s, %s
-                    🕐 %s
-                    
-                    %s Температура: %.1f°C (ощущается как %.1f°C)
-                    📝 Описание: %s
-                    💧 Влажность: %d%%
-                    💨 Ветер: %.1f км/ч, %s
-                    ☁️ Облачность: %d%%
-                    ☀️ УФ-индекс: %.1f
-                    %s
-                    """,
+            return String.format(
+                    "🌤 Погода в городе %s\n" +
+                            "📍 %s, %s\n" +
+                            "🕐 %s\n\n" +
+                            "%s Температура: %.1f°C (ощущается как %.1f°C)\n" +
+                            "📝 Описание: %s\n" +
+                            "💧 Влажность: %d%%\n" +
+                            "💨 Ветер: %.1f км/ч, %s\n" +
+                            "☁️ Облачность: %d%%\n" +
+                            "☀️ УФ-индекс: %.1f\n" +
+                            "%s",
                     cityName, region, country, localTime,
                     emoji, temp, feelsLike, condition, humidity,
                     windKph, windDir, cloud, uvIndex, rainInfo);
 
         } catch (Exception e) {
+            e.printStackTrace();
             return "❌ Город не найден!\n\n" +
                     "Проверьте название города (на английском).\n" +
-                    "Пример: Moscow, London, Kazan, Izhevsk";
+                    "Пример: Moscow, London, Kazan, Russia";
         }
     }
 
