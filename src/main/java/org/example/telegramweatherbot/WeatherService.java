@@ -68,44 +68,57 @@ public class WeatherService {
     }
 
     public String getWeeklyForecast(String city) {
-        try {
-            String url = BASE_URL + "forecast.json?key=" + API_KEY + "&q=" + city + "&days=7&lang=ru";
-            String response = restTemplate.getForObject(url, String.class);
-            JsonNode json = mapper.readTree(response);
+    try {
+        String url = BASE_URL + "forecast.json?key=" + API_KEY + "&q=" + city + "&days=7&lang=ru";
+        String response = restTemplate.getForObject(url, String.class);
+        JsonNode json = mapper.readTree(response);
 
-            String cityName = json.get("location").get("name").asText();
-            var forecastDays = json.get("forecast").get("forecastday");
+        String cityName = json.get("location").get("name").asText();
+        var forecastDays = json.get("forecast").get("forecastday");
 
-            StringBuilder result = new StringBuilder();
-            result.append(String.format("📅 Прогноз на неделю для %s:%n%n", cityName));
+        StringBuilder result = new StringBuilder();
+        result.append("📅 Прогноз на неделю для ").append(cityName).append(":\n\n");
 
-            for (var day : forecastDays) {
-                String date = day.get("date").asText();
-                double maxTemp = day.get("day").get("maxtemp_c").asDouble();
-                double minTemp = day.get("day").get("mintemp_c").asDouble();
-                double avgTemp = day.get("day").get("avgtemp_c").asDouble();
-                String condition = day.get("day").get("condition").get("text").asText();
-                int chanceOfRain = day.get("day").get("daily_chance_of_rain").asInt();
-                String emoji = getWeatherEmoji(condition);
+        for (var day : forecastDays) {
+            String date = day.get("date").asText();
+            double maxTemp = day.get("day").get("maxtemp_c").asDouble();
+            double minTemp = day.get("day").get("mintemp_c").asDouble();
+            double avgTemp = day.get("day").get("avgtemp_c").asDouble();
+            String condition = day.get("day").get("condition").get("text").asText();
+            int chanceOfRain = day.get("day").get("daily_chance_of_rain").asInt();
+            String emoji = getWeatherEmoji(condition);
 
-                String rainEmoji = "";
-                if (chanceOfRain > 30) {
-                    rainEmoji = " 🌧️";
-                }
-
-                String formattedDate = formatDate(date);
-
-                result.append(String.format("• %s: %.1f°C / %.1f°C (сред: %.1f°C) %s %s%s%n",
-                        formattedDate, maxTemp, minTemp, avgTemp, emoji, condition, rainEmoji));
+            String rainEmoji = "";
+            if (chanceOfRain > 30) {
+                rainEmoji = " 🌧️";
             }
 
-            return result.toString();
+            String formattedDate = formatDate(date);
 
-        } catch (Exception e) {
-            return "❌ Не удалось получить прогноз для города " + city + "\n" +
-                    "Попробуйте позже или проверьте название города.";
+            result.append("• ")
+                  .append(formattedDate)
+                  .append(": ")
+                  .append(String.format("%.1f°C", maxTemp))
+                  .append(" / ")
+                  .append(String.format("%.1f°C", minTemp))
+                  .append(" (сред: ")
+                  .append(String.format("%.1f°C", avgTemp))
+                  .append(") ")
+                  .append(emoji)
+                  .append(" ")
+                  .append(condition)
+                  .append(rainEmoji)
+                  .append("\n");
         }
+
+        return result.toString();
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return "❌ Не удалось получить прогноз для города " + city + "\n" +
+                "Попробуйте позже или проверьте название города.";
     }
+}
 
     private String formatDate(String date) {
         try {
