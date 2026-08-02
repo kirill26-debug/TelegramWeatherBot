@@ -31,11 +31,11 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
     private final WeatherService weatherService;
     private final Map<Long, String> userCities = new HashMap<>();
     private final Map<Long, Boolean> waitingForCity = new HashMap<>();
-    
+
     public UpdateConsumer(WeatherService weatherService) {
         this.weatherService = weatherService;
     }
-    
+
     @PostConstruct
     public void init() {
         this.telegramClient = new OkHttpTelegramClient(botToken);
