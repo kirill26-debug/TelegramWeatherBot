@@ -1,10 +1,4 @@
 # ☀️ Telegram Weather Bot
-
-[![Telegram](https://img.shields.io/badge/Telegram-@WeatherBot-blue)](https://t.me/your_bot)
-[![Java](https://img.shields.io/badge/Java-21-orange)](https://adoptium.net/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.0-green)](https://spring.io/projects/spring-boot)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-
 ---
 
 ## 🌤️ О боте
