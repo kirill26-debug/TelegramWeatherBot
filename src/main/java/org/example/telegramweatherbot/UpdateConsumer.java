@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -14,10 +15,12 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
 @Component
+@Slf4j
 public class UpdateConsumer implements LongPollingUpdateConsumer {
 
     private final TelegramClient telegramClient;
@@ -111,7 +114,23 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
         telegramClient.execute(message);
     }
 
+    private void answerCallback(CallbackQuery callbackQuery) {
+        try {
+            telegramClient.execute(
+                    AnswerCallbackQuery.builder()
+                            .callbackQueryId(callbackQuery.getId())
+                            .text("✅")
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("Ошибка при ответе на callback: {}", e.getMessage());
+        }
+    }
+
+
     private void handleCallbackQuery(CallbackQuery callbackQuery) {
+        answerCallback(callbackQuery);
+
         String data = callbackQuery.getData();
         Long chatId = callbackQuery.getFrom().getId();
 
