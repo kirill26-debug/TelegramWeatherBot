@@ -1,11 +1,17 @@
 package org.example.telegramweatherbot;
 
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
+@Getter
+@Setter
+@Data
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,32 +22,7 @@ public class User {
 
     private String city;
 
-    public LocalDateTime getLastUpdate() {
-        return lastUpdate;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public Long getChatId() {
-        return chatId;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
     private LocalDateTime lastUpdate;
 
-    public void setLastUpdate(LocalDateTime now) {
-        this.lastUpdate = now;
-    }
-
-    public void setChatId(Long chatId) {
-        this.chatId = chatId;
-    }
-    public void setCity(String city) {
-        this.city = city;
-    }
+    private boolean notificationEnabled = true;
 }

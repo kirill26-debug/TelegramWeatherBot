@@ -28,13 +28,15 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
 
     private final WeatherService weatherService;
     private final UserService userService;
+    private final UserRepository userRepository;
 
     // Для хранения состояния "ожидание ввода города"
     private final java.util.Map<Long, Boolean> waitingForCity = new java.util.HashMap<>();
 
-    public UpdateConsumer(WeatherService weatherService, UserService userService) {
+    public UpdateConsumer(WeatherService weatherService, UserService userService, UserRepository userRepository) {
         this.weatherService = weatherService;
         this.userService = userService;
+        this.userRepository = userRepository;
     }
 
     @PostConstruct
@@ -52,9 +54,7 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
 
                 System.out.printf("Пришло сообщение '%s' от %d%n", messageText, chatId);
 
-                // Если пользователь в режиме ввода города — сохраняем
                 if (waitingForCity.getOrDefault(chatId, false)) {
-                    // Сохраняем город в БД!
                     userService.saveUser(chatId, messageText);
                     waitingForCity.put(chatId, false);
                     sendMessage(chatId, "✅ Город сохранен: " + messageText);
@@ -72,6 +72,7 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
                     case "/help", "❓ Помощь" -> sendHelpUser(chatId);
                     case "/reset", "♾ Сброс настроек" -> sendResetSettings(chatId);
                     case "/donate_to_author","Поддержать автора" -> sendDonateToAuthor(chatId);
+                    case "/notifications","🔔 Уведомления" -> sendNotifications(chatId);
 
                     default -> sendMessage(chatId, "Я вас не понимаю! Используйте кнопки меню.");
                 }
@@ -96,8 +97,11 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
         row3.add("♾ Сброс настроек");
         row3.add("Поддержать автора");
 
+        KeyboardRow row4 = new KeyboardRow();
+        row4.add("🔔 Уведомления");
+
         ReplyKeyboardMarkup replyKeyboard = ReplyKeyboardMarkup.builder()
-                .keyboard(List.of(row1, row2, row3))
+                .keyboard(List.of(row1, row2, row3,row4))
                 .resizeKeyboard(true)
                 .oneTimeKeyboard(false)
                 .build();
@@ -124,8 +128,23 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
             case "help_user" -> sendHelpUser(chatId);
             case "reset_settings" -> sendResetSettings(chatId);
             case "donate_to_author" -> sendDonateToAuthor(chatId);
+            case "notifications" -> sendNotifications(chatId);
             default -> sendMessage(chatId, "Неизвестная команда");
         }
+    }
+
+    private void sendNotifications(Long chatId) {
+        User user = userRepository.findByChatId(chatId).orElse(null);
+        if(user == null) {
+            sendMessage(chatId, "❌ Пользователь не найден");
+            return;
+        }
+        boolean current = user.isNotificationEnabled();
+        user.setNotificationEnabled(!current);
+        userRepository.save(user);
+
+        String status = user.isNotificationEnabled() ? "включены ✅" : "отключены ❌";
+        sendMessage(chatId, "🔔 Уведомления " + status);
     }
 
     @SneakyThrows
@@ -246,10 +265,16 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
                 .callbackData("donate_to_author")
                 .build();
 
+        InlineKeyboardButton button7 = InlineKeyboardButton.builder()
+                .text("🔔 Уведомления")
+                .callbackData("notifications")
+                .build();
+
         List<InlineKeyboardRow> keyboardRows = List.of(
                 new InlineKeyboardRow(button1, button2),
                 new InlineKeyboardRow(button3, button4),
-                new InlineKeyboardRow(button5, button6)
+                new InlineKeyboardRow(button5, button6),
+                new InlineKeyboardRow(button7)
         );
 
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup(keyboardRows);
