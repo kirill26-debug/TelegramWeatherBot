@@ -16,9 +16,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class UpdateConsumer implements LongPollingUpdateConsumer {
@@ -28,9 +26,16 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
     @Value("${bot.token}")
     private String botToken;
 
-    private final WeatherService weatherService = new WeatherService();
-    private final Map<Long, String> userCities = new HashMap<>();
-    private final Map<Long, Boolean> waitingForCity = new HashMap<>();
+    private final WeatherService weatherService;
+    private final UserService userService;
+
+    // Для хранения состояния "ожидание ввода города"
+    private final java.util.Map<Long, Boolean> waitingForCity = new java.util.HashMap<>();
+
+    public UpdateConsumer(WeatherService weatherService, UserService userService) {
+        this.weatherService = weatherService;
+        this.userService = userService;
+    }
 
     @PostConstruct
     public void init() {
@@ -47,8 +52,10 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
 
                 System.out.printf("Пришло сообщение '%s' от %d%n", messageText, chatId);
 
+                // Если пользователь в режиме ввода города — сохраняем
                 if (waitingForCity.getOrDefault(chatId, false)) {
-                    userCities.put(chatId, messageText);
+                    // Сохраняем город в БД!
+                    userService.saveUser(chatId, messageText);
                     waitingForCity.put(chatId, false);
                     sendMessage(chatId, "✅ Город сохранен: " + messageText);
                     sendMainMenu(chatId);
@@ -148,7 +155,8 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
 
     @SneakyThrows
     private void sendResetSettings(Long chatId) {
-        userCities.remove(chatId);
+        // Сбрасываем город в БД (сохраняем null)
+        userService.saveUser(chatId, null);
         waitingForCity.put(chatId, false);
 
         sendMessage(chatId, """
@@ -181,24 +189,22 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
 
     @SneakyThrows
     private void sendWeeklyForecast(Long chatId) {
-        if (!userCities.containsKey(chatId)) {
+        String city = userService.getCity(chatId);
+        if (city == null) {
             sendMessage(chatId, "🌍 Сначала сохраните город через кнопку '🌍 Сменить город'");
             return;
         }
-
-        String city = userCities.get(chatId);
         String forecast = weatherService.getWeeklyForecast(city);
         sendMessage(chatId, forecast);
     }
 
     @SneakyThrows
     private void sendWeatherToday(Long chatId) {
-        if (!userCities.containsKey(chatId)) {
+        String city = userService.getCity(chatId);
+        if (city == null) {
             sendMessage(chatId, "🌍 Сначала сохраните город через кнопку '🌍 Сменить город'");
             return;
         }
-
-        String city = userCities.get(chatId);
         String weather = weatherService.getCurrentWeather(city);
         sendMessage(chatId, weather);
     }
