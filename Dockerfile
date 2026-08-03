@@ -1,9 +1,10 @@
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jdk-alpine
 
 WORKDIR /app
 
 COPY mvnw .
 COPY .mvn .mvn
+RUN chmod +x mvnw
 
 COPY pom.xml .
 RUN ./mvnw dependency:go-offline

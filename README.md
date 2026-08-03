@@ -1,10 +1,4 @@
 # ☀️ Telegram Weather Bot
-
-[![Telegram](https://img.shields.io/badge/Telegram-@WeatherBot-blue)](https://t.me/your_bot)
-[![Java](https://img.shields.io/badge/Java-21-orange)](https://adoptium.net/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.0-green)](https://spring.io/projects/spring-boot)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-
 ---
 
 ## 🌤️ О боте
@@ -26,7 +20,7 @@
 ## 🛠️ Технологии
 
 - **Java 21** — язык программирования
-- **Spring Boot 3.2.0** — фреймворк
+- **Spring Boot 4.1.0** — фреймворк
 - **Telegram Bot API** — взаимодействие с Telegram
 - **WeatherAPI.com** — получение данных о погоде
 - **Docker** — контейнеризация
@@ -91,13 +85,6 @@ PORT=8080
 Введите название города на английском
 
 Наслаждайтесь погодой! 🌤️
-
-❤️ Поддержать автора
-Если бот вам понравился, вы можете поддержать разработку:
-
-💳 Сбер: 2202 2088 6967 4698
-
-💳 Т-Банк: 2200 7020 7854 3555
-
 📱 Telegram: @mikri001
+⚡ GitHub: kirill26-debug
 
