@@ -1,9 +1,12 @@
 package org.example.telegramweatherbot;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 @Slf4j
 @Service
@@ -11,14 +14,14 @@ import org.springframework.stereotype.Service;
 public class AsyncService {
 
     private final UserRepository userRepository;
-    private final WeatherService weatherService;
+    private final TelegramClient telegramClient;  // ← добавили
 
     @Async
-    public void notifications(Long chatId, UpdateConsumer updateConsumer) {
+    public void toggleNotifications(Long chatId) {  // ← убрали UpdateConsumer
         try {
             User user = userRepository.findByChatId(chatId).orElse(null);
             if (user == null) {
-                updateConsumer.sendMessage(chatId, "❌ Пользователь не найден");
+                sendMessage(chatId, "❌ Пользователь не найден");
                 return;
             }
             boolean current = user.isNotificationEnabled();
@@ -26,23 +29,21 @@ public class AsyncService {
             userRepository.save(user);
 
             String status = user.isNotificationEnabled() ? "включены ✅" : "отключены ❌";
-            updateConsumer.sendMessage(chatId, "🔔 Уведомления " + status);
+            sendMessage(chatId, "🔔 Уведомления " + status);
             log.info("✅ Уведомления для {} переключены на {}", chatId, status);
 
         } catch (Exception e) {
             log.error("❌ Ошибка при переключении уведомлений: {}", e.getMessage());
-            updateConsumer.sendMessage(chatId, "❌ Ошибка при переключении: " + e.getMessage());
+            sendMessage(chatId, "❌ Ошибка при переключении: " + e.getMessage());
         }
     }
 
-    @Async
-    public void sendWeatherAsync(Long chatId, String city, UpdateConsumer updateConsumer) {
-        try {
-            String weather = weatherService.getCurrentWeather(city);
-            updateConsumer.sendMessage(chatId, weather);
-        } catch (Exception e) {
-            log.error("❌ Ошибка при отправке погоды: {}", e.getMessage());
-            updateConsumer.sendMessage(chatId, "❌ Не удалось получить погоду");
-        }
+    @SneakyThrows
+    private void sendMessage(Long chatId, String text) {
+        SendMessage message = SendMessage.builder()
+                .chatId(chatId.toString())
+                .text(text)
+                .build();
+        telegramClient.execute(message);
     }
 }

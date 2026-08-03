@@ -139,7 +139,7 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
 
     private void sendNotifications(Long chatId) {
         sendMessage(chatId, "⏳ Переключаю статус уведомлений...");
-        asyncService.notifications(chatId, this);
+        asyncService.toggleNotifications(chatId);  // ← только chatId!
     }
 
     @SneakyThrows
@@ -159,7 +159,7 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
     }
 
     @SneakyThrows
-    private void sendMessage(Long chatId, String messageText) {
+    public void sendMessage(Long chatId, String messageText) {
         SendMessage message = SendMessage.builder()
                 .chatId(chatId.toString())
                 .text(messageText)
