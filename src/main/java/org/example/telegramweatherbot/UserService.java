@@ -24,8 +24,4 @@ public class UserService {
                 .map(User::getCity)
                 .orElse(null);
     }
-
-    public boolean userExists(Long chatId) {
-        return userRepository.findByChatId(chatId).isPresent();
-    }
 }
