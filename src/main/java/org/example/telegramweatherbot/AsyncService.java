@@ -14,10 +14,10 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 public class AsyncService {
 
     private final UserRepository userRepository;
-    private final TelegramClient telegramClient;  // ← добавили
+    private final TelegramClient telegramClient;
 
     @Async
-    public void toggleNotifications(Long chatId) {  // ← убрали UpdateConsumer
+    public void toggleNotifications(Long chatId) {
         try {
             User user = userRepository.findByChatId(chatId).orElse(null);
             if (user == null) {

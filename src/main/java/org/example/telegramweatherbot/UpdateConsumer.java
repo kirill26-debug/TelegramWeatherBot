@@ -4,7 +4,6 @@ import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -21,31 +20,24 @@ import java.util.List;
 @Component
 public class UpdateConsumer implements LongPollingUpdateConsumer {
 
-    private TelegramClient telegramClient;
-
-    @Value("${bot.token}")
-    private String botToken;
-
+    private final TelegramClient telegramClient;
     private final WeatherService weatherService;
     private final UserService userService;
     private final UserRepository userRepository;
-    private final AsyncService asyncService;  // ← добавили
+    private final AsyncService asyncService;
 
     private final java.util.Map<Long, Boolean> waitingForCity = new java.util.HashMap<>();
 
-    public UpdateConsumer(WeatherService weatherService,
+    public UpdateConsumer(TelegramClient telegramClient,
+                          WeatherService weatherService,
                           UserService userService,
                           UserRepository userRepository,
                           AsyncService asyncService) {
+        this.telegramClient = telegramClient;
         this.weatherService = weatherService;
         this.userService = userService;
         this.userRepository = userRepository;
         this.asyncService = asyncService;
-    }
-
-    @PostConstruct
-    public void init() {
-        this.telegramClient = new OkHttpTelegramClient(botToken);
     }
 
     @SneakyThrows
@@ -139,7 +131,7 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
 
     private void sendNotifications(Long chatId) {
         sendMessage(chatId, "⏳ Переключаю статус уведомлений...");
-        asyncService.toggleNotifications(chatId);  // ← только chatId!
+        asyncService.toggleNotifications(chatId);
     }
 
     @SneakyThrows
@@ -159,7 +151,7 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
     }
 
     @SneakyThrows
-    public void sendMessage(Long chatId, String messageText) {
+    private void sendMessage(Long chatId, String messageText) {
         SendMessage message = SendMessage.builder()
                 .chatId(chatId.toString())
                 .text(messageText)
@@ -169,7 +161,6 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
 
     @SneakyThrows
     private void sendResetSettings(Long chatId) {
-        // Сбрасываем город в БД (сохраняем null)
         userService.saveUser(chatId, null);
         waitingForCity.put(chatId, false);
 
