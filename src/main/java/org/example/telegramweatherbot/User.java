@@ -24,5 +24,6 @@ public class User {
 
     private LocalDateTime lastUpdate;
 
+    @Column(columnDefinition = "boolean default true")
     private boolean notificationEnabled = true;
 }
