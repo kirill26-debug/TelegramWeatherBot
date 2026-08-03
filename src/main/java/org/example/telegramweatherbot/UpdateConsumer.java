@@ -29,14 +29,18 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
     private final WeatherService weatherService;
     private final UserService userService;
     private final UserRepository userRepository;
+    private final AsyncService asyncService;  // ← добавили
 
-    // Для хранения состояния "ожидание ввода города"
     private final java.util.Map<Long, Boolean> waitingForCity = new java.util.HashMap<>();
 
-    public UpdateConsumer(WeatherService weatherService, UserService userService, UserRepository userRepository) {
+    public UpdateConsumer(WeatherService weatherService,
+                          UserService userService,
+                          UserRepository userRepository,
+                          AsyncService asyncService) {
         this.weatherService = weatherService;
         this.userService = userService;
         this.userRepository = userRepository;
+        this.asyncService = asyncService;
     }
 
     @PostConstruct
@@ -134,17 +138,8 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
     }
 
     private void sendNotifications(Long chatId) {
-        User user = userRepository.findByChatId(chatId).orElse(null);
-        if(user == null) {
-            sendMessage(chatId, "❌ Пользователь не найден");
-            return;
-        }
-        boolean current = user.isNotificationEnabled();
-        user.setNotificationEnabled(!current);
-        userRepository.save(user);
-
-        String status = user.isNotificationEnabled() ? "включены ✅" : "отключены ❌";
-        sendMessage(chatId, "🔔 Уведомления " + status);
+        sendMessage(chatId, "⏳ Переключаю статус уведомлений...");
+        asyncService.notifications(chatId, this);
     }
 
     @SneakyThrows
