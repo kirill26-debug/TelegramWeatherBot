@@ -154,13 +154,25 @@ public class WeatherService {
 
     public String getCityByCoords(double lat, double lon) {
         try {
+            lat = Math.round(lat * 10000.0) / 10000.0;
+            lon = Math.round(lon * 10000.0) / 10000.0;
+
             String url = BASE_URL + "current.json?key=" + API_KEY + "&q=" + lat + "," + lon + "&lang=ru";
             String response = restTemplate.getForObject(url, String.class);
             JsonNode json = mapper.readTree(response);
-            return json.get("location").get("name").asText();
+
+            String city = json.get("location").get("name").asText();
+            String country = json.get("location").get("country").asText();
+
+            if (!country.equals("Россия") && !country.equals("Russia")) {
+                log.warn("Город {} находится в стране {}, возможно, ошибка геолокации", city, country);
+                return null;
+            }
+
+            return city;
         } catch (Exception e) {
             log.error("Ошибка при определении города по координатам: {}", e.getMessage());
-            return "Город не найден";
+            return null;
         }
     }
 }
