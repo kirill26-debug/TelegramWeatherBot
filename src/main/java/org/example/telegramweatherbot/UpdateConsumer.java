@@ -243,8 +243,9 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
             sendMessage(chatId, "🌍 Сначала сохраните город через кнопку '🌍 Сменить город'");
             return;
         }
-        String weather = weatherService.getCurrentWeather(city);
-        sendMessage(chatId, weather);
+        // Теперь показывает погоду на весь день по часам
+        String forecast = weatherService.getHourlyForecast(city);
+        sendMessage(chatId, forecast);
     }
 
     @SneakyThrows

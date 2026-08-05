@@ -150,7 +150,6 @@ public class WeatherService {
         return "🌡️";
     }
 
-
     public String getCityByCoords(double lat, double lon) {
         try {
             lat = Math.round(lat * 10000.0) / 10000.0;
@@ -174,6 +173,50 @@ public class WeatherService {
             return null;
         }
     }
+
+    // 🔥 НОВЫЙ МЕТОД — почасовой прогноз на сегодня
+    public String getHourlyForecast(String city) {
+        try {
+            String url = BASE_URL + "forecast.json?key=" + API_KEY + "&q=" + city + "&days=1&lang=ru";
+            String response = restTemplate.getForObject(url, String.class);
+            JsonNode json = mapper.readTree(response);
+
+            String cityName = json.get("location").get("name").asText();
+            var hours = json.get("forecast").get("forecastday").get(0).get("hour");
+
+            StringBuilder result = new StringBuilder();
+            result.append("📅 ПОГОДА НА СЕГОДНЯ для ").append(cityName).append(" (по часам):\n\n");
+
+            for (int i = 0; i < 24; i++) {
+                var hour = hours.get(i);
+                String time = hour.get("time").asText().substring(11, 16);
+                double temp = hour.get("temp_c").asDouble();
+                int temperature = (int) temp;
+                String condition = hour.get("condition").get("text").asText();
+                String emoji = getWeatherEmoji(condition);
+                int chanceOfRain = hour.get("chance_of_rain").asInt();
+
+                String rainInfo = "";
+                if (chanceOfRain > 30) {
+                    rainInfo = " 🌧️" + chanceOfRain + "%";
+                }
+
+                result.append(emoji)
+                        .append(" ")
+                        .append(time)
+                        .append(" → ")
+                        .append(temperature)
+                        .append("°C, ")
+                        .append(condition)
+                        .append(rainInfo)
+                        .append("\n");
+            }
+
+            return result.toString();
+
+        } catch (Exception e) {
+            log.error("Ошибка при получении почасового прогноза: {}", e.getMessage());
+            return "❌ Не удалось получить прогноз на день.";
+        }
+    }
 }
-
-
