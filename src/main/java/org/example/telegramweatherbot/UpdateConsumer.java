@@ -1,20 +1,17 @@
 package org.example.telegramweatherbot;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
@@ -25,7 +22,6 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
     private final TelegramClient telegramClient;
     private final WeatherService weatherService;
     private final UserService userService;
-    private final UserRepository userRepository;
     private final AsyncService asyncService;
 
     private final java.util.Map<Long, Boolean> waitingForCity = new java.util.HashMap<>();
@@ -33,12 +29,10 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
     public UpdateConsumer(TelegramClient telegramClient,
                           WeatherService weatherService,
                           UserService userService,
-                          UserRepository userRepository,
                           AsyncService asyncService) {
         this.telegramClient = telegramClient;
         this.weatherService = weatherService;
         this.userService = userService;
-        this.userRepository = userRepository;
         this.asyncService = asyncService;
     }
 
@@ -46,7 +40,6 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
     @Override
     public void consume(List<Update> updates) {
         for (Update update : updates) {
-
             if (update.hasMessage() && update.getMessage().hasLocation()) {
                 Long chatId = update.getMessage().getChatId();
                 double lat = update.getMessage().getLocation().getLatitude();
@@ -93,7 +86,6 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
                     default -> sendMessage(chatId, "Я вас не понимаю! Используйте кнопки меню.");
                 }
             }
-            // 3️⃣ Обработка callback
             else if (update.hasCallbackQuery()) {
                 handleCallbackQuery(update.getCallbackQuery());
             }
@@ -255,56 +247,6 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
 
     @SneakyThrows
     private void sendMainMenu(Long chatId) {
-        SendMessage message = SendMessage.builder()
-                .chatId(chatId.toString())
-                .text("Добро пожаловать! Выберите действие:")
-                .build();
-
-        InlineKeyboardButton button1 = InlineKeyboardButton.builder()
-                .text("🌤 Погода сегодня")
-                .callbackData("weather_today")
-                .build();
-
-        InlineKeyboardButton button2 = InlineKeyboardButton.builder()
-                .text("📅 Прогноз на неделю")
-                .callbackData("weekly_forecast")
-                .build();
-
-        InlineKeyboardButton button3 = InlineKeyboardButton.builder()
-                .text("🌍 Сменить город")
-                .callbackData("change_city")
-                .build();
-
-        InlineKeyboardButton button4 = InlineKeyboardButton.builder()
-                .text("❓ Помощь")
-                .callbackData("help_user")
-                .build();
-
-        InlineKeyboardButton button5 = InlineKeyboardButton.builder()
-                .text("♾ Сброс настроек")
-                .callbackData("reset_settings")
-                .build();
-
-        InlineKeyboardButton button6 = InlineKeyboardButton.builder()
-                .text("❤️ Поддержать автора")
-                .callbackData("donate_to_author")
-                .build();
-
-        InlineKeyboardButton button7 = InlineKeyboardButton.builder()
-                .text("🔔 Уведомления")
-                .callbackData("notifications")
-                .build();
-
-        List<InlineKeyboardRow> keyboardRows = List.of(
-                new InlineKeyboardRow(button1, button2),
-                new InlineKeyboardRow(button3, button4),
-                new InlineKeyboardRow(button5, button6),
-                new InlineKeyboardRow(button7)
-        );
-
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup(keyboardRows);
-        message.setReplyMarkup(markup);
-
-        telegramClient.execute(message);
+        sendReplayKeyboard(chatId);
     }
 }
