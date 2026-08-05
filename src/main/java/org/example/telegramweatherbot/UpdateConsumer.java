@@ -99,25 +99,23 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
         row1.add("📅 Прогноз на неделю");
 
         KeyboardRow row2 = new KeyboardRow();
-        row2.add("🌍 Сменить город");
-        row2.add("❓ Помощь");
-
-        KeyboardRow row3 = new KeyboardRow();
-        row3.add("♾ Сброс настроек");
-        row3.add("Поддержать автора");
-
-        KeyboardRow row4 = new KeyboardRow();
-        row4.add("🔔 Уведомления");
-
-        KeyboardRow row5 = new KeyboardRow();
         KeyboardButton locationButton = KeyboardButton.builder()
                 .text("📍 Отправить геолокацию")
                 .requestLocation(true)
                 .build();
-        row5.add(locationButton);
+        row2.add(locationButton);
+        row2.add("🔔 Уведомления");
+
+        KeyboardRow row3 = new KeyboardRow();
+        row3.add("🌍 Сменить город");
+        row3.add("❓ Помощь");
+
+        KeyboardRow row4 = new KeyboardRow();
+        row4.add("♾ Сброс настроек");
+        row4.add("Поддержать автора");
 
         ReplyKeyboardMarkup replyKeyboard = ReplyKeyboardMarkup.builder()
-                .keyboard(List.of(row1, row2, row3, row4, row5))
+                .keyboard(List.of(row1, row2, row3, row4))
                 .resizeKeyboard(true)
                 .oneTimeKeyboard(false)
                 .build();
@@ -214,6 +212,8 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
                 📅 Прогноз на неделю - прогноз на 7 дней
                 🌍 Сменить город - изменить город
                 ♾ Сброс настроек - удалить город и сбросить настройки
+                🔔 Уведомления - включить/выключить
+                📍 Отправить геолокацию - ваше расположение
                 """);
     }
 
