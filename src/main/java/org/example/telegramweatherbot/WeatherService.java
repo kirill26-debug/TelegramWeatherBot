@@ -174,7 +174,6 @@ public class WeatherService {
         }
     }
 
-    // 🔥 НОВЫЙ МЕТОД — почасовой прогноз на сегодня
     public String getHourlyForecast(String city) {
         try {
             String url = BASE_URL + "forecast.json?key=" + API_KEY + "&q=" + city + "&days=1&lang=ru";
