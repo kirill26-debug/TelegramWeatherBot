@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Service
 @Slf4j
@@ -185,10 +186,11 @@ public class WeatherService {
             String cityName = json.get("location").get("name").asText();
             var hours = json.get("forecast").get("forecastday").get(0).get("hour");
 
-            int currentHour = LocalDateTime.now().getHour();
+            ZoneId moscowZone = ZoneId.of("Europe/Moscow");
+            int currentHour = LocalDateTime.now(moscowZone).getHour();
 
             StringBuilder result = new StringBuilder();
-            result.append("📅 ПОГОДА НА СЕГОДНЯ для ").append(cityName).append(" (по часам):\n\n");
+            result.append("ПОГОДА НА СЕГОДНЯ ДЛЯ ").append(cityName).append(":\n\n");
 
             for (int i = currentHour; i < 24; i++) {
                 var hour = hours.get(i);
