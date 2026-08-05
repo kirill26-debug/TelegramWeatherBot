@@ -39,13 +39,10 @@ public class ScheduledService {
                 String city = user.getCity();
                 String weather = weatherService.getCurrentWeather(city);
                 sendMessage(user.getChatId(), weather);
-                log.info("✅ Отправлено пользователю {}", user.getChatId());
             } catch (Exception e) {
                 log.error("❌ Ошибка для пользователя {}: {}", user.getChatId(), e.getMessage());
             }
         }
-
-        log.info("✅ Рассылка завершена. Отправлено {} пользователям", users.size());
     }
 
     @SneakyThrows

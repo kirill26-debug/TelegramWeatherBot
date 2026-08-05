@@ -1,8 +1,6 @@
 package org.example.telegramweatherbot;
 
-import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -13,6 +11,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +46,24 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
     @Override
     public void consume(List<Update> updates) {
         for (Update update : updates) {
+
+            if (update.hasMessage() && update.getMessage().hasLocation()) {
+                Long chatId = update.getMessage().getChatId();
+                double lat = update.getMessage().getLocation().getLatitude();
+                double lon = update.getMessage().getLocation().getLongitude();
+
+                String city = weatherService.getCityByCoords(lat, lon);
+
+                if (city != null && !city.equals("Город не найден")) {
+                    userService.saveUser(chatId, city);
+                    sendMessage(chatId, "📍 Определён город: " + city);
+                    sendMainMenu(chatId);
+                } else {
+                    sendMessage(chatId, "❌ Не удалось определить город. Попробуйте ввести его вручную через '🌍 Сменить город'");
+                }
+                continue;
+            }
+
             if (update.hasMessage() && update.getMessage().hasText()) {
                 String messageText = update.getMessage().getText();
                 Long chatId = update.getMessage().getChatId();
@@ -76,6 +93,7 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
                     default -> sendMessage(chatId, "Я вас не понимаю! Используйте кнопки меню.");
                 }
             }
+            // 3️⃣ Обработка callback
             else if (update.hasCallbackQuery()) {
                 handleCallbackQuery(update.getCallbackQuery());
             }
@@ -99,15 +117,22 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
         KeyboardRow row4 = new KeyboardRow();
         row4.add("🔔 Уведомления");
 
+        KeyboardRow row5 = new KeyboardRow();
+        KeyboardButton locationButton = KeyboardButton.builder()
+                .text("📍 Отправить геолокацию")
+                .requestLocation(true)
+                .build();
+        row5.add(locationButton);
+
         ReplyKeyboardMarkup replyKeyboard = ReplyKeyboardMarkup.builder()
-                .keyboard(List.of(row1, row2, row3,row4))
+                .keyboard(List.of(row1, row2, row3, row4, row5))
                 .resizeKeyboard(true)
                 .oneTimeKeyboard(false)
                 .build();
 
         SendMessage message = SendMessage.builder()
                 .chatId(chatId.toString())
-                .text("Это пример обычной клавиатуры! 👇")
+                .text("Выберите действие:")
                 .replyMarkup(replyKeyboard)
                 .build();
 
@@ -134,8 +159,6 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
         String data = callbackQuery.getData();
         Long chatId = callbackQuery.getFrom().getId();
 
-        System.out.printf("Нажата inline кнопка: '%s' от %d%n", data, chatId);
-
         switch (data) {
             case "weather_today" -> sendWeatherToday(chatId);
             case "weekly_forecast" -> sendWeeklyForecast(chatId);
@@ -156,17 +179,14 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
     @SneakyThrows
     private void sendDonateToAuthor(Long chatId) {
         sendMessage(chatId, """
-            ❤️ Спасибо за поддержку!
-            
-            ☕ Поддержать разработку:
-            • Сбер: 2202 2088 6967 4698
-            • Т-Банк: 2200 7020 7854 3555
-            
-            📱 Связаться со мной:
-            • Telegram: @mikri001
-            
-            🔥 Бот бесплатный! Спасибо, что пользуетесь! ❤️
-            """);
+        ❤️ Поддержать разработку
+        
+        🌐 Нажми на ссылку ниже, чтобы перейти к оплате:
+        👇👇👇
+        https://www.donationalerts.com/r/mikri001
+        
+        🔥 Спасибо, что помогаешь развивать бота! 🔥
+        """);
     }
 
     @SneakyThrows

@@ -1,5 +1,6 @@
 package org.example.telegramweatherbot;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -7,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
+@Slf4j
 public class WeatherService {
 
     @Value("${weather.api.key}")
@@ -28,7 +30,7 @@ public class WeatherService {
             String localTime = json.get("location").get("localtime").asText();
 
             double temp = json.get("current").get("temp_c").asDouble();
-            double feelsLike = json.get("current").get("feelslike_c").asDouble();
+            int temperature = (int) temp;
             String condition = json.get("current").get("condition").get("text").asText();
             int humidity = json.get("current").get("humidity").asInt();
             double windKph = json.get("current").get("wind_kph").asDouble();
@@ -48,7 +50,7 @@ public class WeatherService {
                     "🌤 Погода в городе %s\n" +
                             "📍 %s, %s\n" +
                             "🕐 %s\n\n" +
-                            "%s Температура: %.1f°C (ощущается как %.1f°C)\n" +
+                            "%s Температура: %d°C\n" +
                             "📝 Описание: %s\n" +
                             "💧 Влажность: %d%%\n" +
                             "💨 Ветер: %.1f км/ч, %s\n" +
@@ -56,7 +58,7 @@ public class WeatherService {
                             "☀️ УФ-индекс: %.1f\n" +
                             "%s",
                     cityName, region, country, localTime,
-                    emoji, temp, feelsLike, condition, humidity,
+                    emoji, temperature, condition, humidity,
                     windKph, windDir, cloud, uvIndex, rainInfo);
 
         } catch (Exception e) {
@@ -68,57 +70,57 @@ public class WeatherService {
     }
 
     public String getWeeklyForecast(String city) {
-    try {
-        String url = BASE_URL + "forecast.json?key=" + API_KEY + "&q=" + city + "&days=7&lang=ru";
-        String response = restTemplate.getForObject(url, String.class);
-        JsonNode json = mapper.readTree(response);
+        try {
+            String url = BASE_URL + "forecast.json?key=" + API_KEY + "&q=" + city + "&days=7&lang=ru";
+            String response = restTemplate.getForObject(url, String.class);
+            JsonNode json = mapper.readTree(response);
 
-        String cityName = json.get("location").get("name").asText();
-        var forecastDays = json.get("forecast").get("forecastday");
+            String cityName = json.get("location").get("name").asText();
+            var forecastDays = json.get("forecast").get("forecastday");
 
-        StringBuilder result = new StringBuilder();
-        result.append("📅 Прогноз на неделю для ").append(cityName).append(":\n\n");
+            StringBuilder result = new StringBuilder();
+            result.append("📅 Прогноз на неделю для ").append(cityName).append(":\n\n");
 
-        for (var day : forecastDays) {
-            String date = day.get("date").asText();
-            double maxTemp = day.get("day").get("maxtemp_c").asDouble();
-            double minTemp = day.get("day").get("mintemp_c").asDouble();
-            double avgTemp = day.get("day").get("avgtemp_c").asDouble();
-            String condition = day.get("day").get("condition").get("text").asText();
-            int chanceOfRain = day.get("day").get("daily_chance_of_rain").asInt();
-            String emoji = getWeatherEmoji(condition);
+            for (var day : forecastDays) {
+                String date = day.get("date").asText();
+                double maxTemp = day.get("day").get("maxtemp_c").asDouble();
+                double minTemp = day.get("day").get("mintemp_c").asDouble();
+                double avgTemp = day.get("day").get("avgtemp_c").asDouble();
+                String condition = day.get("day").get("condition").get("text").asText();
+                int chanceOfRain = day.get("day").get("daily_chance_of_rain").asInt();
+                String emoji = getWeatherEmoji(condition);
 
-            String rainEmoji = "";
-            if (chanceOfRain > 30) {
-                rainEmoji = " 🌧️";
+                String rainEmoji = "";
+                if (chanceOfRain > 30) {
+                    rainEmoji = " 🌧️";
+                }
+
+                String formattedDate = formatDate(date);
+
+                result.append("• ")
+                        .append(formattedDate)
+                        .append(": ")
+                        .append(String.format("%.1f°C", maxTemp))
+                        .append(" / ")
+                        .append(String.format("%.1f°C", minTemp))
+                        .append(" (сред: ")
+                        .append(String.format("%.1f°C", avgTemp))
+                        .append(") ")
+                        .append(emoji)
+                        .append(" ")
+                        .append(condition)
+                        .append(rainEmoji)
+                        .append("\n");
             }
 
-            String formattedDate = formatDate(date);
+            return result.toString();
 
-            result.append("• ")
-                  .append(formattedDate)
-                  .append(": ")
-                  .append(String.format("%.1f°C", maxTemp))
-                  .append(" / ")
-                  .append(String.format("%.1f°C", minTemp))
-                  .append(" (сред: ")
-                  .append(String.format("%.1f°C", avgTemp))
-                  .append(") ")
-                  .append(emoji)
-                  .append(" ")
-                  .append(condition)
-                  .append(rainEmoji)
-                  .append("\n");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "❌ Не удалось получить прогноз для города " + city + "\n" +
+                    "Попробуйте позже или проверьте название города.";
         }
-
-        return result.toString();
-
-    } catch (Exception e) {
-        e.printStackTrace();
-        return "❌ Не удалось получить прогноз для города " + city + "\n" +
-                "Попробуйте позже или проверьте название города.";
     }
-}
 
     private String formatDate(String date) {
         try {
@@ -148,4 +150,19 @@ public class WeatherService {
         if (condition.contains("ясно с прояснениями")) return "🌤️";
         return "🌡️";
     }
+
+
+    public String getCityByCoords(double lat, double lon) {
+        try {
+            String url = BASE_URL + "current.json?key=" + API_KEY + "&q=" + lat + "," + lon + "&lang=ru";
+            String response = restTemplate.getForObject(url, String.class);
+            JsonNode json = mapper.readTree(response);
+            return json.get("location").get("name").asText();
+        } catch (Exception e) {
+            log.error("Ошибка при определении города по координатам: {}", e.getMessage());
+            return "Город не найден";
+        }
+    }
 }
+
+

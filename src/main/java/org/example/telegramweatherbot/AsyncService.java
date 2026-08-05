@@ -30,10 +30,8 @@ public class AsyncService {
 
             String status = user.isNotificationEnabled() ? "включены ✅" : "отключены ❌";
             sendMessage(chatId, "🔔 Уведомления " + status);
-            log.info("✅ Уведомления для {} переключены на {}", chatId, status);
 
         } catch (Exception e) {
-            log.error("❌ Ошибка при переключении уведомлений: {}", e.getMessage());
             sendMessage(chatId, "❌ Ошибка при переключении: " + e.getMessage());
         }
     }
