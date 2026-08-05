@@ -80,7 +80,7 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
                     case "/city", "🌍 Сменить город" -> sendChangeCity(chatId);
                     case "/help", "❓ Помощь" -> sendHelpUser(chatId);
                     case "/reset", "♾ Сброс настроек" -> sendResetSettings(chatId);
-                    case "/donate_to_author","Поддержать автора" -> sendDonateToAuthor(chatId);
+                    case "/donate_to_author","❤️ Поддержать автора" -> sendDonateToAuthor(chatId);
                     case "/notifications","🔔 Уведомления" -> sendNotifications(chatId);
 
                     default -> sendMessage(chatId, "Я вас не понимаю! Используйте кнопки меню.");
@@ -112,7 +112,7 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
 
         KeyboardRow row4 = new KeyboardRow();
         row4.add("♾ Сброс настроек");
-        row4.add("Поддержать автора");
+        row4.add("❤️ Поддержать автора");
 
         ReplyKeyboardMarkup replyKeyboard = ReplyKeyboardMarkup.builder()
                 .keyboard(List.of(row1, row2, row3, row4))
@@ -122,7 +122,6 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
 
         SendMessage message = SendMessage.builder()
                 .chatId(chatId.toString())
-                .text("Выберите действие:")
                 .replyMarkup(replyKeyboard)
                 .build();
 
