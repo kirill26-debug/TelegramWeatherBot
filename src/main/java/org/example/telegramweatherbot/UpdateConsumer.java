@@ -122,7 +122,6 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
 
         SendMessage message = SendMessage.builder()
                 .chatId(chatId.toString())
-                .text("Выберите действие:")
                 .replyMarkup(replyKeyboard)
                 .build();
 
