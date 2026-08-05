@@ -124,6 +124,7 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
 
         SendMessage message = SendMessage.builder()
                 .chatId(chatId.toString())
+                .text("🏠 Главное меню. Выберите действие:")
                 .replyMarkup(replyKeyboard)
                 .build();
 
@@ -248,11 +249,6 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
 
     @SneakyThrows
     private void sendMainMenu(Long chatId) {
-        // Простейшая отправка без клавиатуры
-        SendMessage message = SendMessage.builder()
-                .chatId(chatId.toString())
-                .text("✅ Бот работает! Команда /start получена.")
-                .build();
-        telegramClient.execute(message);
+        sendReplayKeyboard(chatId);
     }
 }
