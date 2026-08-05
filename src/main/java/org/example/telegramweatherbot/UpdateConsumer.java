@@ -21,6 +21,7 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
 
     private final TelegramClient telegramClient;
     private final WeatherService weatherService;
+    private final UserRepository  userRepository;
     private final UserService userService;
     private final AsyncService asyncService;
 
@@ -29,10 +30,11 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
     public UpdateConsumer(TelegramClient telegramClient,
                           WeatherService weatherService,
                           UserService userService,
-                          AsyncService asyncService) {
+                          AsyncService asyncService, UserRepository userRepository) {
         this.telegramClient = telegramClient;
         this.weatherService = weatherService;
         this.userService = userService;
+        this.userRepository = userRepository;
         this.asyncService = asyncService;
     }
 
@@ -246,6 +248,11 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
 
     @SneakyThrows
     private void sendMainMenu(Long chatId) {
-        sendReplayKeyboard(chatId);
+        // Простейшая отправка без клавиатуры
+        SendMessage message = SendMessage.builder()
+                .chatId(chatId.toString())
+                .text("✅ Бот работает! Команда /start получена.")
+                .build();
+        telegramClient.execute(message);
     }
 }
