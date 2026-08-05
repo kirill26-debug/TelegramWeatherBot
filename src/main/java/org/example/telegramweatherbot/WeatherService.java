@@ -7,6 +7,8 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.time.LocalDateTime;
+
 @Service
 @Slf4j
 public class WeatherService {
@@ -174,7 +176,6 @@ public class WeatherService {
         }
     }
 
-    // 🔥 НОВЫЙ МЕТОД — почасовой прогноз на сегодня
     public String getHourlyForecast(String city) {
         try {
             String url = BASE_URL + "forecast.json?key=" + API_KEY + "&q=" + city + "&days=1&lang=ru";
@@ -184,10 +185,12 @@ public class WeatherService {
             String cityName = json.get("location").get("name").asText();
             var hours = json.get("forecast").get("forecastday").get(0).get("hour");
 
+            int currentHour = LocalDateTime.now().getHour();
+
             StringBuilder result = new StringBuilder();
             result.append("📅 ПОГОДА НА СЕГОДНЯ для ").append(cityName).append(" (по часам):\n\n");
 
-            for (int i = 0; i < 24; i++) {
+            for (int i = currentHour; i < 24; i++) {
                 var hour = hours.get(i);
                 String time = hour.get("time").asText().substring(11, 16);
                 double temp = hour.get("temp_c").asDouble();
