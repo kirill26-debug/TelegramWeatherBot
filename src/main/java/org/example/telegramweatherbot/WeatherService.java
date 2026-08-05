@@ -65,7 +65,7 @@ public class WeatherService {
             e.printStackTrace();
             return "❌ Город не найден!\n\n" +
                     "Проверьте название города (на английском).\n" +
-                    "Пример: Moscow, London, Kazan, Russia";
+                    "Пример: Moscow, London, Kazan, Izhevsk";
         }
     }
 
@@ -84,8 +84,9 @@ public class WeatherService {
             for (var day : forecastDays) {
                 String date = day.get("date").asText();
                 double maxTemp = day.get("day").get("maxtemp_c").asDouble();
+                int maximTemp = (int) maxTemp;
                 double minTemp = day.get("day").get("mintemp_c").asDouble();
-                double avgTemp = day.get("day").get("avgtemp_c").asDouble();
+                int minimTemp = (int) minTemp;
                 String condition = day.get("day").get("condition").get("text").asText();
                 int chanceOfRain = day.get("day").get("daily_chance_of_rain").asInt();
                 String emoji = getWeatherEmoji(condition);
@@ -100,11 +101,9 @@ public class WeatherService {
                 result.append("• ")
                         .append(formattedDate)
                         .append(": ")
-                        .append(String.format("%.1f°C", maxTemp))
+                        .append(String.format("%df°C", maximTemp))
                         .append(" / ")
-                        .append(String.format("%.1f°C", minTemp))
-                        .append(" (сред: ")
-                        .append(String.format("%.1f°C", avgTemp))
+                        .append(String.format("%df°C", minimTemp))
                         .append(") ")
                         .append(emoji)
                         .append(" ")
