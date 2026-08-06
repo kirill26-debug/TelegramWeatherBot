@@ -20,11 +20,11 @@
 
 | Главное меню | Текущая погода |
 |--------------|----------------|
-| ![Главное меню](images/image_1.jpg) | ![Текущая погода](images/image_2.jpg) |
+| ![Главное меню](images/main_menu.png) | ![Текущая погода](images/current_weather.png) |
 
 | Прогноз на день | Прогноз на неделю |
 |----------------|-------------------|
-| ![Прогноз на день](images/image_3.jpg) | ![Прогноз на неделю](images/image_3.jpg) |
+| ![Прогноз на день](images/hourly_forecast.png) | ![Прогноз на неделю](images/weekly_forecast.png) |
 
 ---
 
@@ -37,6 +37,8 @@
 - **Telegram Bot API** — взаимодействие с Telegram
 - **WeatherAPI.com** — получение данных о погоде
 - **Docker** — контейнеризация
+- **Render** — деплой и хостинг
+
 ---
 
 ## 🚀 Запуск и деплой
@@ -49,27 +51,30 @@
    cd TelegramWeatherBot
 Создай файл .env с переменными:
 
-env
-BOT_TOKEN=твой_токен_бота
-WEATHER_API_KEY=твой_ключ_от_WeatherAPI
-DATABASE_URL=postgresql://user:pass@host:5432/db
+2.
+   env
+   BOT_TOKEN=твой_токен_бота
+   WEATHER_API_KEY=твой_ключ_от_WeatherAPI
+   DATABASE_URL=postgresql://user:pass@host:5432/db
+   
 Запусти приложение:
 
 bash
 ./mvnw clean package
 java -jar target/TelegramWeatherBot-0.0.1-SNAPSHOT.jar
+
 🐳 Запуск через Docker
 bash
 docker build -t weather-bot .
 docker run -d -p 8080:8080 --env-file .env weather-bot
 🌐 Деплой на Render
-Залей код на GitHub.
+1. Залей код на GitHub.
 
-Создай Web Service на Render.
+2. Создай Web Service на Render.
 
-Подключи репозиторий и добавь переменные окружения.
+3. Подключи репозиторий и добавь переменные окружения.
 
-Нажми Deploy.
+4. Нажми Deploy.
 
 📱 Команды бота
 Команда	Описание
@@ -80,6 +85,7 @@ docker run -d -p 8080:8080 --env-file .env weather-bot
 /help	Показать помощь
 /reset	Сбросить настройки
 /notifications	Включить/выключить уведомления
+
 📊 Схема базы данных
 sql
 CREATE TABLE users (
