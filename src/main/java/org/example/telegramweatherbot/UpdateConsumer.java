@@ -78,6 +78,7 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
                     case "/keyboard" -> sendReplayKeyboard(chatId);
 
                     case "/weather", "🌤 Погода сегодня" -> sendWeatherToday(chatId);
+                    case "/weather_now", "🌤 Погода сейчас" -> sendWeatherNow(chatId);
                     case "/forecast", "📅 Прогноз на неделю" -> sendWeeklyForecast(chatId);
                     case "/city", "🌍 Сменить город" -> sendChangeCity(chatId);
                     case "/help", "❓ Помощь" -> sendHelpUser(chatId);
@@ -95,10 +96,22 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
     }
 
     @SneakyThrows
+    private void sendWeatherNow(Long chatId) {
+        String city = userService.getCity(chatId);
+        if(city == null) {
+            sendMessage(chatId, "🌍 Сначала сохраните город через кнопку '🌍 Сменить город'");
+            return;
+        }
+        String weather = weatherService.getCurrentWeather(city);
+        sendMessage(chatId, weather);
+    }
+
+    @SneakyThrows
     private void sendReplayKeyboard(Long chatId) {
         KeyboardRow row1 = new KeyboardRow();
         row1.add("🌤 Погода сегодня");
         row1.add("📅 Прогноз на неделю");
+        row1.add("🌤 Погода сейчас");
 
         KeyboardRow row2 = new KeyboardRow();
         KeyboardButton locationButton = KeyboardButton.builder()
@@ -153,6 +166,7 @@ public class UpdateConsumer implements LongPollingUpdateConsumer {
 
         switch (data) {
             case "weather_today" -> sendWeatherToday(chatId);
+            case "weather_now" -> sendWeatherNow(chatId);
             case "weekly_forecast" -> sendWeeklyForecast(chatId);
             case "change_city" -> sendChangeCity(chatId);
             case "help_user" -> sendHelpUser(chatId);
